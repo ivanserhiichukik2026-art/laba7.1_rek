@@ -3,134 +3,125 @@
 #include <iomanip>
 #include <cstdlib>
 #include <ctime>
-
 using namespace std;
 
-void Create(int** a, int rowCount, int colCount, int Low, int High, int i = 0, int j = 0)
+void Create(int** a, int n, int m, int low, int high, int i = 0, int j = 0)
 {
-    if (i == rowCount)
+    if (i == n)
         return;
 
-    a[i][j] = Low + rand() % (High - Low + 1);
+    a[i][j] = low + rand() % (high - low + 1);
 
-    if (j + 1 < colCount)
-        Create(a, rowCount, colCount, Low, High, i, j + 1);
+    if (j + 1 < m) // переходим до наступного стовпця поки не дійдем до края
+        Create(a, n, m, low, high, i, j + 1); // якщо в поточному рядку ще є елементи - збільшуємо j
     else
-        Create(a, rowCount, colCount, Low, High, i + 1, 0);
+        Create(a, n, m, low, high, i + 1, 0); // Якщо рядок закінчився - збільшуємо i, а j повертаємо на 0.
 }
 
-void Print(int** a, int rowCount, int colCount, int i = 0, int j = 0)
+void Print(int** a, int n, int m, int i = 0, int j = 0) // виведення
 {
-    if (i == rowCount)
-    {
-        cout << endl;
+    if (i == n)
         return;
-    }
 
     cout << setw(5) << a[i][j];
 
-    if (j + 1 < colCount)
-        Print(a, rowCount, colCount, i, j + 1);
+    if (j + 1 < m)
+        Print(a, n, m, i, j + 1);
     else
     {
         cout << endl;
-        Print(a, rowCount, colCount, i + 1, 0);
+        Print(a, n, m, i + 1, 0);
     }
 }
 
-void Change(int** a, int col1, int col2, int rowCount, int i = 0)
+void Change(int** a, int j1, int j2, int n, int i = 0) // поміняти два стовпці місцями
 {
-    if (i == rowCount)
+    if (i == n)
         return;
 
-    int tmp = a[i][col1];
-    a[i][col1] = a[i][col2];
-    a[i][col2] = tmp;
+    int tmp = a[i][j1];
+    a[i][j1] = a[i][j2];
+    a[i][j2] = tmp;
 
-    Change(a, col1, col2, rowCount, i + 1);
+    Change(a, j1, j2, n, i + 1); // перехід до наступного рядка , перебираємо тільки всі рядки
 }
 
-void Sort(int** a, int rowCount, int colCount, int i = 0, int j = 0)
+void Sort(int** a, int n, int m, int i = 0, int j = 0) // сортування
 {
-    if (i == colCount - 1)
+    if (i == m - 1) // маємо 6 стовпців , для сортування потрібно потрібно 5 проходів
         return;
-
-    if (j == colCount - i - 1)
+    
+    if (j == m - i - 1) // коли закінчується порівнювняння стовпців в поточному проході , йдемо до наступного
     {
-        Sort(a, rowCount, colCount, i + 1, 0);
+        Sort(a, n, m, i + 1, 0); 
         return;
     }
 
-    if (a[0][j] < a[0][j + 1] ||
-        (a[0][j] == a[0][j + 1] &&
-            a[1][j] < a[1][j + 1]) ||
-        (a[0][j] == a[0][j + 1] &&
-            a[1][j] == a[1][j + 1] &&
-            a[2][j] > a[2][j + 1]))
+    if (a[0][j] < a[0][j + 1] || // якщо ліве число менше правого , міняємо стовпці місцями
+        (a[0][j] == a[0][j + 1] && a[1][j] < a[1][j + 1]) || // якщо числа першого рядка однакові, порівнюємо другий рядок
+        (a[0][j] == a[0][j + 1] && a[1][j] == a[1][j + 1] && a[2][j] > a[2][j + 1])) // Якщо перший і другий рядки однакові, порівнюємо третій
     {
-        Change(a, j, j + 1, rowCount);
+        Change(a, j, j + 1, n);
     }
 
-    Sort(a, rowCount, colCount, i, j + 1);
+    Sort(a, n, m, i, j + 1);
 }
 
-void Calc(int** a, int rowCount, int colCount, int& S, int& k, int i = 0, int j = 0)
+void Calc(int** a, int n, int m, int& s, int& k, int i = 0, int j = 0)
 {
-    if (i == rowCount)
+    if (i == n)
         return;
 
     if (a[i][j] >= 0 && a[i][j] % 3 == 0)
     {
-        S += a[i][j];
+        s += a[i][j];
         k++;
         a[i][j] = 0;
     }
 
-    if (j + 1 < colCount)
-        Calc(a, rowCount, colCount, S, k, i, j + 1);
+    if (j + 1 < m)
+        Calc(a, n, m, s, k, i, j + 1);
     else
-        Calc(a, rowCount, colCount, S, k, i + 1, 0);
+        Calc(a, n, m, s, k, i + 1, 0);
 }
 
 int main()
 {
     srand((unsigned)time(NULL));
 
-    int rowCount = 9;
-    int colCount = 6;
-    int Low = -21;
-    int High = 24;
+    int n = 9, m = 6;
+    int low = -21, high = 24;
 
-    int** P = new int* [rowCount];
+    int** a = new int* [n];
 
-    for (int i = 0; i < rowCount; i++)
-        P[i] = new int[colCount];
+    for (int i = 0; i < n; i++)
+        a[i] = new int[m];
 
-    Create(P, rowCount, colCount, Low, High);
+    Create(a, n, m, low, high);
 
-    cout << "Original matrix:";
-    Print(P, rowCount, colCount);
+    cout << "Original matrix:" << endl;
+    Print(a, n, m);
+    cout << endl;
 
-    Sort(P, rowCount, colCount);
+    Sort(a, n, m);
 
-    cout << "Sorted matrix:";
-    Print(P, rowCount, colCount);
+    cout << "Sorted matrix:" << endl;
+    Print(a, n, m);
+    cout << endl;
 
-    int S = 0;
-    int k = 0;
+    int s = 0, k = 0;
+    Calc(a, n, m, s, k);
 
-    Calc(P, rowCount, colCount, S, k);
-
-    cout << "S = " << S << endl;
+    cout << "S = " << s << endl;
     cout << "k = " << k << endl;
 
-    cout << "Modified matrix:";
-    Print(P, rowCount, colCount);
+    cout << "Modified matrix:" << endl;
+    Print(a, n, m);
 
-    for (int i = 0; i < rowCount; i++)
-        delete[] P[i];
+    for (int i = 0; i < n; i++)
+        delete[] a[i];
 
-    delete[] P;
+    delete[] a;
 
     return 0;
 }
